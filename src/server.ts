@@ -19,7 +19,11 @@ admin.initializeApp({
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(errorHandler);
@@ -29,21 +33,20 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
 });
 
 app.post("/send-group-message", async (req: Request, res: Response) => {
-  const { title, body, topic } = req.body;
+  const { title, body, token } = req.body;
+  console.log(req.body);
 
   const message = {
+    token,
     notification: {
       title: title,
       body: body,
     },
-    data: {
-      topic: topic,
-    },
   };
 
   try {
-    const response = await admin.messaging().sendToTopic(topic, message);
-    console.log("Successfully sent message:", response);
+    const response = await admin.messaging().send(message);
+    res.status(200).json({ message: `Successfully sent message:", ${response}` });
   } catch (error) {
     throw new ErrorException("400", error);
   }
